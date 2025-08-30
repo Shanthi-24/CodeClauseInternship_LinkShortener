@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Shortener</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        input { padding: 10px; margin: 10px; width: 300px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        #shortenedLink { margin-top: 20px; }
+        .qr-container { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>URL Link Shortener</h1>
+    <input type="text" id="urlInput" placeholder="Enter your long URL" />
+    <br>
+    <input type="text" id="customShort" placeholder="Custom Short URL (optional)" />
+    <br>
+    <button onclick="shortenLink()">Shorten URL</button>
+
+    <div id="shortenedLink"></div>
+    <div class="qr-container" id="qrCodeContainer"></div>
+
+    <script>
+        async function shortenLink() {
+            const url = document.getElementById("urlInput").value;
+            const customShort = document.getElementById("customShort").value.trim();
+            
+            if (!url) {
+                alert("Please enter a URL.");
+                return;
+            }
+
+            const response = await fetch("http://localhost:3000/shorten", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url, customShort })
+            });
+
+            const data = await response.json();
+            if (data.shortUrl) {
+                document.getElementById("shortenedLink").innerHTML = `Shortened URL: <a href="${data.shortUrl}" target="_blank">${data.shortUrl}</a>`;
+                generateQRCode(data.shortUrl);
+            } else {
+                alert("Error shortening the URL");
+            }
+        }
+
+        function generateQRCode(shortUrl) {
+            const qrCodeContainer = document.getElementById("qrCodeContainer");
+            qrCodeContainer.innerHTML = ""; // Clear previous QR code
+            QRCode.toCanvas(qrCodeContainer, shortUrl, function (error) {
+                if (error) console.error(error);
+            });
+        }
+    </script>
+</body>
+</html>
